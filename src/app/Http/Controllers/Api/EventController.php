@@ -15,6 +15,12 @@ class EventController extends Controller
     use CanLoadRelationships;
 
     private array $relations = ['user', 'attendees', 'attendees.user'];
+
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -22,14 +28,12 @@ class EventController extends Controller
     {
         $query = $this->loadRelationships(Event::query());
 
-       
-
         return EventResource::collection(
             $query->latest()->paginate()
         );
     }
 
-    
+
 
     /**
      * Store a newly created resource in storage.
@@ -42,8 +46,8 @@ class EventController extends Controller
                     'description' => 'nullable|max:255',
                     'start_time' => 'required|date',
                     'end_time' => 'required|date|after:start_time'
-            ]), 
-            'user_id' => 1 
+            ]),
+            'user_id' => $request->user()->id
         ]);
 
         return new EventResource($this->loadRelationships($event));
@@ -72,7 +76,7 @@ class EventController extends Controller
         );
 
         return new EventResource($this->loadRelationships($event));
-      
+
     }
 
     /**
@@ -81,7 +85,7 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $event->delete();
-        
+
 
         return response(status: 204);
     }
